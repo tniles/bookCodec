@@ -48,7 +48,8 @@ void print_para(char **para);
 void print_chap(char ***chap);
 void print_book(char ****book);
 
-FILE *mp;
+FILE *mpd;
+FILE *mpe;
 FILE *bp;
 
 CODE * get_code(char ****book, char *msg);
@@ -66,67 +67,82 @@ main(void)
   //char ***chap;
   char ****book;
   //DECODING: ints for addresses of encoded message
-  //int chn;
-  //int prn;
-  //int lnn;
-  //int ltrn;
+  int chn;
+  int prn;
+  int lnn;
+  int ltrn;
   //ENCODING: variables
   char *msg;    //holds message to be encoded
   CODE *pcode;   //declaration of pointer to struct of typedef CODE 
   CODE *head;    //pointers for data trail
   CODE *tail;    //pointers for data trail
 
-  //mp = fopen("./encoded_message.txt", "r"); //encoded message pointer (to decode)
-  mp = fopen("./message.txt", "r");         //readable message pointer (to encode)
-  bp = fopen("./orthodoxy.txt", "r");       //book pointer
-  
-  //build book
-  book = get_book(); 
-  //get message to be encoded
-  msg = get_msg();
-
-  //pcode = (CODE *) malloc (sizeof(CODE));  //why are these not necessary?
-  //head  = (CODE *) malloc (sizeof(CODE));  
-  //tail  = (CODE *) malloc (sizeof(CODE));
   head  = NULL;
   tail  = NULL;
 
-  while( (pcode = get_code(book, msg)) )
-  {
-    if(!head){              //create the linked list, start at head
-      tail = pcode;
-      head = tail;          //put head and tail on same linked list
-    }
-    else{
-      tail->next = pcode;  //self-reference to make linked list
-      tail = pcode; 
-    }
-  }
+  //get book
+  bp = fopen("./orthodoxy.txt", "r");           //book pointer
+  //if( decode ){
+      mpd = fopen("./encoded_message.txt", "r"); //encoded message pointer (to decode)
+  //}
+  //if( encode ){
+      mpe = fopen("./message.txt", "r");         //readable message pointer (to encode)
+  //}
+  
+  //build book
+  book = get_book(); 
 
-  //now print out the linked list; begin at head and proceed thru *next until tail is reached
-  pcode = head;
-  while(pcode)
-  {
-    printf("%d %d %d %d\n", pcode->chapter, pcode->paragraph, pcode->line, pcode->letter);
-    pcode = pcode->next;
-  }
+  /* ENCODING PATH */
+  //if( encode ){
+      //get message to be encoded
+      msg = get_msg( mpe );
 
-  //read encoded from program, print decoded
-  pcode = head;
-  while(pcode != NULL)
-  {
-    printf("%c", book[pcode->chapter][pcode->paragraph][pcode->line][pcode->letter]);
-    fflush(stdout);
-    pcode = pcode->next;
-  }
+      while( (pcode = get_code(book, msg)) )
+      {
+        if(!head){              //create the linked list, start at head
+          tail = pcode;
+          head = tail;          //put head and tail on same linked list
+        }
+        else{
+          tail->next = pcode;  //self-reference to make linked list
+          tail = pcode; 
+        }
+      }
 
-  printf("\n");
+      //now print out the encoding (linked list); begin at head and proceed thru *next until 
+      //tail is reached
+      pcode = head;
+      while(pcode)
+      {
+        printf("%d %d %d %d\n", pcode->chapter, pcode->paragraph, pcode->line, pcode->letter);
+        pcode = pcode->next;
+      }
+#ifdef DBG_ENCODE
+      //read encoded from program, print decoded
+      pcode = head;
+      while(pcode != NULL)
+      {
+        printf("%c", book[pcode->chapter][pcode->paragraph][pcode->line][pcode->letter]);
+        pcode = pcode->next;
+      }
+      fflush(stdout);
+      printf("\n");
+#endif
+  //}
 
-  free(book);        //free the memory used for the book
+  /* DECODING PATH */
+  //if( decode ){
+      //read encoded, print decoded
+      while((fscanf(mpd, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF)
+      {
+        printf("%c", book[chn][prn][lnn][ltrn]);
+      }
+      fflush(stdout);
+  //}
+
+  free(book);       //free the memory used for the book
   free(msg);        //free the memory used for the message
-  free(pcode);        //free the memory used for pcode
-  //free(head);        //free the memory used for head
-  //free(tail);        //free the memory used for tail
+  free(pcode);      //free the memory used for pcode
 
   return (0);
 
@@ -293,20 +309,20 @@ get_num_chapters(char ****book)
 /****************************************************
  *FUNCTION   : get_msg
  *DESCRIPTION: gets the message to be encoded
- *ARGUMENTS  : 
+ *ARGUMENTS  : fh -- pointer to file resource
  *RETURNS    : msg  -- pointer to message 
  ***************************************************/
 char *
-get_msg()
+get_msg( FILE * fh )
 {
   char c; 
   char * msg;
-  char tempmsg[2047];
+  char tempmsg[2048];
   int  i=0;
   int  len=0;
   int  j;
 
-  while(((c=fgetc(mp)) != '\n') && (c != EOF))
+  while( ((c=fgetc(fh)) != '\n') && (c != EOF) )
   {
     tempmsg[i++] = c;
   }
@@ -336,7 +352,7 @@ get_book()
 {
   char **** book;
   char *** chap;           
-  char *** tempbook[255];   //temp array to hold pointers to chaps
+  char *** tempbook[256];   //temp array to hold pointers to chaps
   int i=0; 
   int j; 
   int len; 
@@ -373,7 +389,7 @@ get_chap()
 {
   char ***chap;
   char **para;
-  char **tempchap[255];   //temp array to hold pointers to paragraphs
+  char **tempchap[256];   //temp array to hold pointers to paragraphs
   int i=0; 
   int j; 
   int len; 
@@ -422,7 +438,7 @@ get_para()
 {
   char **para;
   char *line;
-  char *temppara[255];   //temp array to hold pointers to lines
+  char *temppara[256];   //temp array to hold pointers to lines
   int i=0; 
   int j; 
   int len; 
@@ -466,7 +482,7 @@ get_line()
 {
   char *line;
   char c; 
-  char templine[255]; 
+  char templine[256]; 
   int len; 
   int i=0, j; 
 
