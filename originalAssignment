@@ -1,0 +1,55 @@
+Assignment 8: Book Code
+
+A classic book code uses references to pages, lines, and characters of a particular book to
+encrypt a message. For instance, assuming that you and a friend had agreed on a certain
+version of Melville’s Moby Dick, you could secretly pass a message like this:
+
+            256 12 18
+            127 11 8
+            104 18 14
+            ...
+
+Where the first number is the page number, the second number is the line
+number, and the third number is the letter within the line. Because you never
+use the same letter twice, the code is virtually unbreakable (one would need
+to exhaustively search every book ever published – which is actually getting
+easier year by year). 
+
+We are going to attempt to parse a book code using a text formatted book. In
+our version, we will have letters, lines, paragraphs, and chapters. I will
+give you a text version of a book and an encoded message and ask you to write
+a C program that decrypts the message.
+
+This program will make use of pointers rather than arrays as you are to save
+the entire book in memory in the smallest space available. At each “level”, we
+will have a list of pointers to manage the text of the book. We will define a
+“list” to be an allocated (malloc) space of memory that contains a NULL
+terminated sequence of pointers of the same type. The top level list, called
+book, will be a list of pointers to chapter lists. The chapter lists will in
+turn be lists of pointers to paragraph lists. The paragraph lists will contain
+a sequence of line pointers, each of which are pointers to a NULL terminated
+list of characters (or a string) that holds the text of each line. The line
+lists contain (char *) pointers; the paragraph lists will contain (char **)
+pointers (or pointers to pointers of type char); the chapter lists have (char
+***) and so on.
+
+When building up each section, you are to use a function that has a defined
+array within it to build up the sequence of elements. When the sequence has
+been built in the array, you need to malloc a list, and copy the array to the
+list and return the list. You cannot simply use the array with the function as
+that memory will be freed when the function exits. This method allows us to
+minimize the size of each list rather than having a maximally sized array for
+every element within our structure.
+
+You should begin the program by writing a simple get_line function. Test this
+by iterating through an input file and calling the get_line function followed
+by a print_line function to ensure that everything is working. From here, move
+up to the paragraph with a get_paragraph function and a print_paragraph
+function. You can then move to the chapter and then the book. 
+
+Each chapter will be defined by text in the first column (typically a roman
+numeral). All subsequent lines within the chapter will be indented a couple of
+spaces. Use the newline to delimit lines and consecutive newlines (or lines
+with only whitespace) to delimit paragraphs. I will supply you with a code
+that you will need to decrypt to successfully complete the assignment. 
+
