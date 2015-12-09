@@ -29,6 +29,7 @@
 **************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -45,12 +46,10 @@ void print_book(char ****book);
 FILE *mp;
 FILE *bp;
 
-main(){
-
+int
+main(void)
+{
   //pointers to elements of chosen book
-  char *line; 
-  char **para;
-  char ***chap;
   char ****book;
   //ints for addresses of encoded message
   int chn;
@@ -65,13 +64,15 @@ main(){
   book = get_book(); 
 
   //read encoded, print decoded
-  while((fscanf(mp, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF){
+  while((fscanf(mp, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF)
+  {
     printf("%c", book[chn][prn][lnn][ltrn]);
     fflush(stdout);
   }
 
   free(book);        //free the memory used for the book
 
+  return (0);
 }
 
 
@@ -81,9 +82,9 @@ main(){
  *ARGUMENTS  : 
  *RETURNS    : book, NULL on EOF
  ***************************************************/
-
-char **** get_book(){
-  
+char ****
+get_book()
+{
   char **** book;
   char *** chap;           
   char *** tempbook[255];   //temp array to hold pointers to chaps
@@ -91,7 +92,8 @@ char **** get_book(){
   int j; 
   int len; 
   
-  while(chap = get_chap()){  
+  while( (chap = get_chap()) )
+  {
     tempbook[i++] = chap;
   }  
 
@@ -102,7 +104,8 @@ char **** get_book(){
 
   book = (char ****) malloc((len+1) * sizeof(book));  
 
-  for(j=0; j <= len; j++){
+  for(j=0; j <= len; j++)
+  {
     book[j] = tempbook[j];
   }
 
@@ -117,9 +120,9 @@ char **** get_book(){
  *ARGUMENTS  :  
  *RETURNS    : chap, NULL on EOF
  ***************************************************/
-
-char *** get_chap(){
-
+char ***
+get_chap()
+{
   char ***chap;
   char **para;
   char **tempchap[255];   //temp array to hold pointers to paragraphs
@@ -133,10 +136,11 @@ char *** get_chap(){
     nextchap = NULL;
   }
 
-  while(para = get_para()){  
-    if(!isspace(**para) && i){         //if the first col char is text, then
-      nextchap = para;           //static store addr of new chap para
-      break;                  //break because new chapter has begun
+  while( (para = get_para()) )
+  {
+    if(!isspace(**para) && i){      //if the first col char is text, then
+      nextchap = para;              //static store addr of new chap para
+      break;                        //break because new chapter has begun
     }
     else{
       tempchap[i++] = para;
@@ -150,7 +154,8 @@ char *** get_chap(){
 
   chap = (char ***) malloc((len+1) * sizeof(char ***));
 
-  for(j=0; j <= len; j++){
+  for(j=0; j <= len; j++)
+  {
     chap[j] = tempchap[j];
   }
 
@@ -164,9 +169,9 @@ char *** get_chap(){
  *ARGUMENTS  :  
  *RETURNS    : para, NULL on EOF
  ***************************************************/
-
-char ** get_para(){
-
+char **
+get_para()
+{
   char **para;
   char *line;
   char *temppara[255];   //temp array to hold pointers to lines
@@ -174,7 +179,8 @@ char ** get_para(){
   int j; 
   int len; 
 
-  while(line = get_line()){  
+  while( (line = get_line()) )
+  {
     if(*line == '\n'){
       temppara[i++] = line;
       break;       //need this to let the rest of getpara run
@@ -191,7 +197,8 @@ char ** get_para(){
 
   para = (char **) malloc((len+1) * sizeof(char **));
 
-  for(j=0; j <= len; j++){
+  for(j=0; j <= len; j++)
+  {
     para[j] = temppara[j];
   }
 
@@ -206,16 +213,17 @@ char ** get_para(){
  *ARGUMENTS  :  
  *RETURNS    : line, NULL on EOF
  ***************************************************/
-
-char * get_line(){
-
+char *
+get_line()
+{
   char *line;
   char c; 
   char templine[255]; 
   int len; 
   int i=0, j; 
 
-  while(((c=fgetc(bp)) != '\n') && (c != EOF)){  
+  while(((c=fgetc(bp)) != '\n') && (c != EOF))
+  {
     templine[i++] = c;
   }
 
@@ -231,7 +239,8 @@ char * get_line(){
 
   line = (char *) malloc((len+1) * sizeof(char));  //malloc w/room for NULL
 
-  for(j=0; j <= len; j++){
+  for(j=0; j <= len; j++)
+  {
     *(line + j) = templine[j];       //populate pointers list
   }
 
@@ -245,11 +254,10 @@ char * get_line(){
  *ARGUMENTS  : *line -- pointer holding string of chars 
  *RETURNS    : void 
 ****************************************************/
-
-void print_line(char *line){
-
+void
+print_line(char *line)
+{
   printf("%s",line);
-
 }
 
 /****************************************************
@@ -258,12 +266,14 @@ void print_line(char *line){
  *ARGUMENTS  : **para -- pointer holding lines
  *RETURNS    : void 
 ****************************************************/
-
-void print_para(char **para){
-
+void
+print_para(char **para)
+{
   int i;
 
-  for(i=0; *(para + i) != '\0'; i++){   //condition: para is a NULL terminated list of pointers to lines
+  //condition: para is a NULL terminated list of pointers to lines
+  for(i=0; *(para + i) != '\0'; i++)
+  {
     print_line(*(para + i));
   }
 
@@ -275,12 +285,14 @@ void print_para(char **para){
  *ARGUMENTS  : ***chap -- pointer list of paragraphs 
  *RETURNS    : void 
 ****************************************************/
-
-void print_chap(char ***chap){
-
+void
+print_chap(char ***chap)
+{
   int i;
 
-  for(i=0; *(chap + i) != '\0'; i++){   //condition: chap is a NULL terminated list of pointers to paragraphs 
+  //condition: chap is a NULL terminated list of pointers to paragraphs 
+  for(i=0; *(chap + i) != '\0'; i++)
+  {
     print_para(*(chap + i));
   }
 
@@ -292,12 +304,14 @@ void print_chap(char ***chap){
  *ARGUMENTS  : ****book -- pointer list of chapters 
  *RETURNS    : void 
 ****************************************************/
-
-void print_book(char ****book){
-
+void
+print_book(char ****book)
+{
   int i;
 
-  for(i=0; *(book + i) != '\0'; i++){   //condition: chap is a NULL terminated list of pointers to paragraphs 
+  //condition: chap is a NULL terminated list of pointers to paragraphs 
+  for(i=0; *(book + i) != '\0'; i++)
+  {
     print_chap(*(book + i));
   }
 
