@@ -1,4 +1,27 @@
-Assignment 8: Book Code
+Assignment 9: Book Code 2 - Encoding
+
+Using your book code from the last assignment, create a program that can encode a message as
+well as decode a message. You should use a linked list of code structs to hold the code as you
+encode the message. In order to encode the message, you will need to take one character of the
+message at a time, and randomly find a reference to that character somewhere in the book. To
+do this in a somewhat random manner, generate a random number to select one of the chapters in
+the book. Then generate a random number to select one of the paragraphs in the chapter.
+Make sure that you do not attempt to access an area that is outside of the memory you have
+allocated. Continue this process until you find a random letter. Check this letter to see
+if it matches the letter of your message. If it does not, continue on letter by letter,
+line by line, paragraph by paragraph, chapter by chapter, until you find a letter that
+matches. You need to ensure that you handle end of lines, paragraphs, chapters, and
+books appropriately. You should also check to see that you do not enter an infinite
+loop in the event that the character does not exist in your book. When you find a
+character that matches, create a structure that has the character, and the chapter,
+paragraph, line, and letter reference for that character. Add this structure to your
+array. When you have completed the encoding of the message, use your decoder to verify
+that the decoded message is the same as the message that you started with. When this
+is verified, print the encoded message.
+
+
+
+Assignment 8: Book Code 1 - Decoding
 
 A classic book code uses references to pages, lines, and characters of a particular book to
 encrypt a message. For instance, assuming that you and a friend had agreed on a certain
