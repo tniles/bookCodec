@@ -1,3 +1,33 @@
+/**************************************************************************
+ * NAME        : NILES
+ * COURSE      : ENGE300
+ * DATE        : NOV. 15th, 2007
+ * DESCRIPTION : Decodes a book code and prints the decoded message
+ * FILES       : "orthodoxy.txt" -- book to read in
+ *               "encoded_message.txt" -- message to decode 
+*
+* Program Grading Criteria
+* 
+* PROGRAM CORRECTNESS
+* a) the program listing is complete and correct    (10)_________
+* b) verification tests are complete and documented (20)_________
+* c) program flowchart is complete and correct      (20)_________
+* c) functions correctly                            (80)_________
+*
+* PROGRAM DESIGN
+* a) variable names/types are well chosen           (10)_________
+* b) modularity/parameters are passed appropriately (10)_________
+* c) overall logic                                  (20)_________
+*
+* PROGRAM READABILITY AND DOCUMENTATION
+* a) header comments are complete and clear         (10)_________
+* b) internal comments are complete and clear       (10)_________
+* c) white space and indents are used appropriately (10)_________
+*
+*                                           TOTAL  (200)_________
+ * 
+**************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -62,8 +92,7 @@ char **** get_book(){
   int len; 
   
   while(chap = get_chap()){  
-    tempbook[i] = chap;
-    i++;
+    tempbook[i++] = chap;
   }  
 
   if (!i) return NULL;
@@ -96,38 +125,26 @@ char *** get_chap(){
   char **tempchap[255];   //temp array to hold pointers to paragraphs
   int i=0; 
   int j; 
-  static char **nextchap; //holds the title "paragraph" of nextchapter
-  static int k=0;
-  static int end=0;     //end execution counter
-  int dummy=0;          //dummy counter to assist var end 
   int len; 
+  static char **nextchap = NULL; //holds the title "paragraph" of nextchapter
 
-  if(end) return NULL;
-
-  if(k > 0){
-    //para = nextchap;          //Spivey--why doesn't it like this???
-    tempchap[i] = nextchap;
-    i++;
+  if(nextchap){
+    tempchap[i++] = nextchap;
+    nextchap = NULL;
   }
 
   while(para = get_para()){  
-    dummy++;
-    if(!isspace(**para)){         //if the first col char is text, then
+    if(!isspace(**para) && i){         //if the first col char is text, then
       nextchap = para;           //static store addr of new chap para
-      k++;                 //static kill count
       break;                  //break because new chapter has begun
     }
     else{
-      tempchap[i] = para;
-      i++;
+      tempchap[i++] = para;
     }
   }
 
-  if(!dummy){
-    nextchap = NULL;
-    end++;                 //this is the key to ending via eof
-  }
-
+  if(!i) return NULL;
+  
   tempchap[i] = NULL;
   len = i;               //length of pointer list
 
@@ -159,13 +176,11 @@ char ** get_para(){
 
   while(line = get_line()){  
     if(*line == '\n'){
-      temppara[i] = line;
-      i++;
+      temppara[i++] = line;
       break;       //need this to let the rest of getpara run
     }
     else{
-      temppara[i] = line;
-      i++;
+      temppara[i++] = line;
     }
   }  
 
@@ -201,8 +216,7 @@ char * get_line(){
   int i=0, j; 
 
   while(((c=fgetc(bp)) != '\n') && (c != EOF)){  
-    templine[i] = c;
-    i++;
+    templine[i++] = c;
   }
 
   if (c == EOF) {           //omitted to make get_para work; needs to return
@@ -235,14 +249,6 @@ char * get_line(){
 void print_line(char *line){
 
   printf("%s",line);
-
-  /*
-  int i;
-
-  for(i=0; *(line + i) != '\0'; i++){   
-    printf("%c", *(line + i));
-  }
-  */
 
 }
 
