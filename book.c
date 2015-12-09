@@ -2,39 +2,25 @@
  * NAME        : NILES
  * COURSE      : ENGE300
  * DATE        : DEC. 1st, 2007
- * DESCRIPTION : Encodes a message using book code; prints out decoded message
- * FILES       : "orthodoxy.txt" -- book to read in
- *               "message.txt"   -- message to encode 
- *               "encoded_message.txt" -- message to decode 
- *               "structs.h"     -- struct definitions used in program
- *
- * Program Grading Criteria
- * 
- * PROGRAM CORRECTNESS
- * a) the program listing is complete and correct    (10)_________
- * b) verification tests are complete and documented (20)_________
- * c) program flowchart is complete and correct      (20)_________
- * d) functions correctly                            (80)_________
- *
- * PROGRAM DESIGN
- * a) variable names/types are well chosen           (10)_________
- * b) modularity/parameters are passed appropriately (10)_________
- * c) overall logic                                  (20)_________
- *
- * PROGRAM READABILITY AND DOCUMENTATION
- * a) header comments are complete and clear         (10)_________
- * b) internal comments are complete and clear       (10)_________
- * c) white space and indents are used appropriately (10)_________
- *
- *                                           TOTAL  (200)_________
- * 
+ * DESCRIPTION : Encodes/Decodes a message using book code; prints out decoded message.
+ *               Originally written for my undergraduate C programming class; revised since.
+ * FILES       : "structs.h"     -- struct definitions used in program
 **************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include "structs.h"
+
+#if 0
+#define DBG_ENCODE 1
+#endif
+
+#define nextargi (--argc,atoi(*++argv))        // Handle Command Line
+#define nextargf (--argc,atof(*++argv))
+#define nextargs (--argc,*++argv)
 
 char * get_msg();
 
@@ -59,12 +45,9 @@ int get_num_lines();
 int get_num_characters();
 
 int
-main(void)
+main(int argc, char **argv)
 {
   //pointers to elements of chosen book
-  //char *line; 
-  //char **para;
-  //char ***chap;
   char ****book;
   //DECODING: ints for addresses of encoded message
   int chn;
@@ -73,27 +56,59 @@ main(void)
   int ltrn;
   //ENCODING: variables
   char *msg;    //holds message to be encoded
-  CODE *pcode;   //declaration of pointer to struct of typedef CODE 
-  CODE *head;    //pointers for data trail
-  CODE *tail;    //pointers for data trail
+  CODE *pcode;  //declaration of pointer to struct of typedef CODE 
+  CODE *head;   //pointers for data trail
+  CODE *tail;   //pointers for data trail
 
+  // init pointers
+  book  = NULL;
+  msg   = NULL;
+  pcode = NULL;
   head  = NULL;
   tail  = NULL;
 
+  // command line handling
+  if(argc<2){        // too few command-line arguments?
+    printf("Command-line usage:\n");
+    printf("    %s [book] [messageToEncode] [messageToDecode]\n",argv[0]);
+    printf("        book is the plain text book file to use as a codec\n");
+    printf("        messageToEncode is a plain text message file to encode\n");
+    printf("        messageToDecode is a book-encoded file to decode\n");
+    exit(0);
+  }
+  char bookFname[512], msgEncFname[512], msgDecFname[512];	// file names for arg handling
+  unsigned char encode=0, decode=0;
+  strcpy(bookFname,nextargs);
+  printf("Code book: %s\n", bookFname);  
+  *msgEncFname='\0';
+  *msgDecFname='\0';
+  argc--;                               // may not be an awesome idea, but it works
+  if( argc ){
+      strcpy(msgEncFname,nextargs);
+      encode=1;
+      printf("Preparing to Encode: %s\n", msgEncFname);
+  }
+  if( argc ){
+      strcpy(msgDecFname,nextargs);
+      decode=1;
+      printf("Preparing to Decode: %s\n", msgDecFname);
+  }
+
   //get book
-  bp = fopen("./orthodoxy.txt", "r");           //book pointer
-  //if( decode ){
-      mpd = fopen("./encoded_message.txt", "r"); //encoded message pointer (to decode)
-  //}
-  //if( encode ){
-      mpe = fopen("./message.txt", "r");         //readable message pointer (to encode)
-  //}
-  
+  bp = fopen(bookFname, "r");           //book pointer
+  if( encode ){
+      mpe = fopen(msgEncFname, "r");    //readable message pointer (to encode)
+  }
+  if( decode ){
+      mpd = fopen(msgDecFname, "r");    //encoded message pointer (to decode)
+  }
+
   //build book
   book = get_book(); 
 
   /* ENCODING PATH */
-  //if( encode ){
+  if( encode )
+  {
       //get message to be encoded
       msg = get_msg( mpe );
 
@@ -128,21 +143,22 @@ main(void)
       fflush(stdout);
       printf("\n");
 #endif
-  //}
+  }
 
   /* DECODING PATH */
-  //if( decode ){
+  if( decode )
+  {
       //read encoded, print decoded
       while((fscanf(mpd, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF)
       {
         printf("%c", book[chn][prn][lnn][ltrn]);
       }
       fflush(stdout);
-  //}
+  }
 
-  free(book);       //free the memory used for the book
-  free(msg);        //free the memory used for the message
-  free(pcode);      //free the memory used for pcode
+  if ( NULL != msg ) free(msg);        //free the memory used for the message
+  if ( NULL != book ) free(book);       //free the memory used for the book
+  if ( NULL != pcode ) free(pcode);      //free the memory used for pcode
 
   return (0);
 
