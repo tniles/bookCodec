@@ -15,8 +15,11 @@
 #include "structs.h"
 
 #if 0
+// Enable to see the encoded message can be decoded by this same program
 #define DBG_ENCODE 1
 #endif
+
+#define FILENAME_MAX_LEN 512
 
 #define nextargi (--argc,atoi(*++argv))        // Handle Command Line
 #define nextargf (--argc,atof(*++argv))
@@ -34,8 +37,7 @@ void print_para(char **para);
 void print_chap(char ***chap);
 void print_book(char ****book);
 
-FILE *mpd;
-FILE *mpe;
+FILE *mp;
 FILE *bp;
 
 CODE * get_code(char ****book, char *msg);
@@ -70,38 +72,44 @@ main(int argc, char **argv)
   // command line handling
   if(argc<2){        // too few command-line arguments?
     printf("Command-line usage:\n");
-    printf("    %s [book] [messageToEncode] [messageToDecode]\n",argv[0]);
+    printf("    %s [book] [encode|decode] [messageToCodec]\n",argv[0]);
     printf("        book is the plain text book file to use as a codec\n");
-    printf("        messageToEncode is a plain text message file to encode\n");
-    printf("        messageToDecode is a book-encoded file to decode\n");
+    printf("        encode|decode specifies to encode or decode the supplied message\n");
+    printf("        messageToCodec is a book-encoded file to decode or message to encode\n");
     exit(0);
   }
-  char bookFname[512], msgEncFname[512], msgDecFname[512];	// file names for arg handling
+  char bookFname[FILENAME_MAX_LEN], optCodec[FILENAME_MAX_LEN], msgToCodec[FILENAME_MAX_LEN];	// file names for arg handling
   unsigned char encode=0, decode=0;
   strcpy(bookFname,nextargs);
-  printf("Code book: %s\n", bookFname);  
-  *msgEncFname='\0';
-  *msgDecFname='\0';
+  // NOTE: print excess messages to stderr, so shell I/O redirection will not include these
+  // messages in the final output codec'd message files.
+  fprintf(stderr, "Code book: %s\n", bookFname);  
+  *optCodec='\0';
+  *msgToCodec='\0';
   argc--;                               // may not be an awesome idea, but it works
   if( argc ){
-      strcpy(msgEncFname,nextargs);
-      encode=1;
-      printf("Preparing to Encode: %s\n", msgEncFname);
+      strcpy(optCodec,nextargs);
+      if ( 0 == strcmp(optCodec, "encode") ){
+          encode=1;
+          fprintf(stderr, "Preparing to Encode...\n");
+      } else if ( 0 == strcmp(optCodec, "decode") ){
+          decode=1;
+          fprintf(stderr, "Preparing to Decode...\n");
+      }
+  } else {
+      printf("\tERROR - Requires: specify encode or decode.\n");
   }
   if( argc ){
-      strcpy(msgDecFname,nextargs);
-      decode=1;
-      printf("Preparing to Decode: %s\n", msgDecFname);
+      strcpy(msgToCodec,nextargs);
+      fprintf(stderr, "File to Codec: %s\n", msgToCodec);
+  } else {
+      printf("\tERROR - Requires: message file to codec. Please try again.\n");
+      exit (0);
   }
 
   //get book
   bp = fopen(bookFname, "r");           //book pointer
-  if( encode ){
-      mpe = fopen(msgEncFname, "r");    //readable message pointer (to encode)
-  }
-  if( decode ){
-      mpd = fopen(msgDecFname, "r");    //encoded message pointer (to decode)
-  }
+  mp = fopen(msgToCodec, "r");          //message pointer (file to either encode or decode)
 
   //build book
   book = get_book(); 
@@ -110,7 +118,7 @@ main(int argc, char **argv)
   if( encode )
   {
       //get message to be encoded
-      msg = get_msg( mpe );
+      msg = get_msg( mp );
 
       while( (pcode = get_code(book, msg)) )
       {
@@ -149,11 +157,12 @@ main(int argc, char **argv)
   if( decode )
   {
       //read encoded, print decoded
-      while((fscanf(mpd, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF)
+      while((fscanf(mp, "%d %d %d %d", &chn, &prn, &lnn, &ltrn)) != EOF)
       {
         printf("%c", book[chn][prn][lnn][ltrn]);
       }
       fflush(stdout);
+      printf("\n");
   }
 
   if ( NULL != msg ) free(msg);        //free the memory used for the message
